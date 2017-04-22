@@ -21,3 +21,5 @@ def apply_pipeline(input_iterable, pipeline):
 
     applied_function = __pipeline_functions[function_type](function_to_apply, input_iterable)
     return apply_pipeline(applied_function, pipeline)
+
+# TODO allow passing initializer parameter to reduce
