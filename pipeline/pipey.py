@@ -16,10 +16,8 @@ def apply_pipeline(input_iterable, pipeline):
     if len(pipeline) == 0:
         return input_iterable
 
-    function_to_apply, function_type = pipeline.pop(0)
+    function_to_apply, function_type, *optional_parameters = pipeline.pop(0)
     assert len(pipeline) == 0 or function_type != modifier.reduce
 
-    applied_function = __pipeline_functions[function_type](function_to_apply, input_iterable)
+    applied_function = __pipeline_functions[function_type](function_to_apply, input_iterable, *optional_parameters)
     return apply_pipeline(applied_function, pipeline)
-
-# TODO allow passing initializer parameter to reduce
