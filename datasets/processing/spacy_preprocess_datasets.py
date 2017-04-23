@@ -19,7 +19,7 @@ def process_line(line_dict):
         'question2': nlp(line_dict['question2']).to_bytes()
     }
     if 'is_duplicate' in line_dict:
-        data['is_duplicate'] = True if line_dict['is_duplicate'] == 1 else False
+        data['is_duplicate'] = True if line_dict['is_duplicate'] == '1' else False
     return data
 
 
@@ -27,8 +27,8 @@ def process_dataset(dataset):
     return [process_line(line_dict) for line_dict in dataset]
 
 
-with open('../input/train_dataset.pickle', 'wb') as output_file:
-    pickle.dump(process_dataset(read_dataset('../input/train.csv')), output_file)
+with open('../../input/train_dataset.pickle', 'wb') as output_file:
+    pickle.dump(process_dataset(read_dataset('../../input/train.csv')), output_file)
 
-# with open('../input/test_dataset.pickle', 'wb') as output_file:
-#     pickle.dump(process_dataset(read_dataset('../input/test.csv')), output_file)
+with open('../../input/test_dataset.pickle', 'wb') as output_file:
+    pickle.dump(process_dataset(read_dataset('../../input/test.csv')), output_file)
