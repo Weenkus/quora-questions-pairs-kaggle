@@ -7,8 +7,12 @@ nlp = spacy.load('en_default')
 
 
 def all_questions():
+    counter = 0
     with open('../input/all_questions_corpus.txt', 'r', encoding="ISO-8859-1") as input_file:
         for line in input_file:
+            counter += 1
+            if counter % 1000000 == 0:
+                print(counter)
             yield line.strip()
 
 
