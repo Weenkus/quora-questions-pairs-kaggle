@@ -65,3 +65,18 @@ def complex_test_1():
     ]
 
     print(apply_pipeline(iter(range(0, 10)), p))
+
+
+def complex_test_2():
+    from collections import Counter
+
+    def foo1(counter, iterable):
+        counter.update(iterable)
+        return counter
+
+    p = [
+        (lambda x: x * 2, modifier.map),
+        (foo1, modifier.reduce, Counter())
+    ]
+
+    print(apply_pipeline([[1, 2, 3, 4], [1, 2, 3], [1, 2], [1]], p))
