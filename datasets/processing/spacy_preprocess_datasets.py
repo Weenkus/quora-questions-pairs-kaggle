@@ -28,7 +28,7 @@ def process_dataset(dataset):
 
 
 with open('../input/train_dataset.pickle', 'wb') as output_file:
-    pickle.dump(process_dataset(read_dataset('../input/train.csv')), output_file)
+   pickle.dump(process_dataset(read_dataset('../input/train.csv')), output_file)
 
 with open('../input/test_dataset.pickle', 'wb') as output_file:
     pickle.dump(process_dataset(read_dataset('../input/test.csv')), output_file)
