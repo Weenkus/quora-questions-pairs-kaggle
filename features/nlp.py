@@ -1,5 +1,5 @@
 from .helper import jaccard_index, nlp, get_heads, get_objects, get_roots, get_subjects, interrogative_words, \
-    get_non_alphanumeric_characters
+    get_non_alphanumeric_characters, filter_words_with_minimum_idf, geometric_mean_of_unigram_idfs
 
 
 def assert_valid_input(entry):
@@ -63,7 +63,7 @@ def object_sets_similarity(entry):
 
 def first_interrogative_matching(entry):
     interrogatives1 = [word.lemma for word in entry['question1_document'] if word.lemma_ in interrogative_words]
-    interrogatives2 = [word.lemma for word in entry['question1_document'] if word.lemma_ in interrogative_words]
+    interrogatives2 = [word.lemma for word in entry['question2_document'] if word.lemma_ in interrogative_words]
 
     match = False
     if interrogatives1 and interrogatives2:
@@ -81,5 +81,24 @@ def non_alphanumeric_sets_similarity(entry):
     )
 
 
+def unigram_idf_cutoff_similarity(entry):
+    entry['unigram_idf_cutoff_similarity_5_feature'] = jaccard_index(
+        filter_words_with_minimum_idf(entry['question1_document'], 5),
+        filter_words_with_minimum_idf(entry['question2_document'], 5)
+    )
+    entry['unigram_idf_cutoff_similarity_10_feature'] = jaccard_index(
+        filter_words_with_minimum_idf(entry['question1_document'], 10),
+        filter_words_with_minimum_idf(entry['question2_document'], 10)
+    )
+    entry['unigram_idf_cutoff_similarity_15_feature'] = jaccard_index(
+        filter_words_with_minimum_idf(entry['question1_document'], 15),
+        filter_words_with_minimum_idf(entry['question2_document'], 15)
+    )
 
+
+def unigram_idf_mean_difference(entry):
+    entry['unigram_idf_mean_difference_feature'] = abs(
+        geometric_mean_of_unigram_idfs(entry['question1_document']) -
+        geometric_mean_of_unigram_idfs(entry['question2_document'])
+    )
 
