@@ -27,9 +27,11 @@ def extract_lemmas(question):
     previous_word = None
     for current_word in document:
         if previous_word is None:
+            previous_word = current_word
             continue
         bigram = (previous_word.lemma_, current_word.lemma_)
         bigrams.add(bigram)
+        previous_word = current_word
     for bigram in bigrams:
         yield bigram
 
