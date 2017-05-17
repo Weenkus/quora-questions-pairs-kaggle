@@ -1,5 +1,7 @@
-from .helper import jaccard_index, nlp, get_heads, get_objects, get_roots, get_subjects, interrogative_words, \
-    get_non_alphanumeric_characters, filter_words_with_minimum_idf, geometric_mean_of_unigram_idfs
+from scipy.special import expit as logistic_sigmoid
+from quora_questions.features.helper import jaccard_index, nlp, get_heads, get_objects, get_roots, get_subjects, interrogative_words, \
+    get_non_alphanumeric_characters, filter_words_with_minimum_idf, geometric_mean_of_unigram_idfs, \
+    is_subject_verb_inversion, naive_normalization, number_of_children, document_pos, relative_levenshtein_distance
 
 
 def assert_valid_input(entry):
@@ -8,22 +10,28 @@ def assert_valid_input(entry):
     assert 'question2' in entry
     assert isinstance(entry['question1'], str)
     assert isinstance(entry['question2'], str)
+    return entry
 
 
 def spacy_process(entry):
     entry['question1_document'] = nlp(entry['question1'])
     entry['question2_document'] = nlp(entry['question2'])
+    return entry
 
 
 def simple_similarity(entry):
-    entry['spacy_similarity_feature'] = entry['question1_document'].similarity(entry['question2_document'])
+    entry['spacy_similarity_feature'] = naive_normalization(
+        entry['question1_document'].similarity(entry['question2_document'])
+    )
+    return entry
 
 
 def entity_sets_similarity(entry):
     entry['entities_similarity_feature'] = jaccard_index(
-        set(entry['question1_document'].ents),
-        set(entry['question2_document'].ents)
+        set([entity.text for entity in entry['question1_document'].ents]),
+        set([entity.text for entity in entry['question2_document'].ents])
     )
+    return entry
 
 
 def numbers_sets_similarity(entry):
@@ -31,6 +39,7 @@ def numbers_sets_similarity(entry):
         set([word.lemma for word in entry['question1_document'] if word.like_num]),
         set([word.lemma for word in entry['question2_document'] if word.like_num])
     )
+    return entry
 
 
 def subject_sets_similarity(entry):
@@ -38,6 +47,7 @@ def subject_sets_similarity(entry):
         get_subjects(entry['question1_document']),
         get_subjects(entry['question2_document'])
     )
+    return entry
 
 
 def parse_roots_sets_similarity(entry):
@@ -45,6 +55,7 @@ def parse_roots_sets_similarity(entry):
         get_roots(entry['question1_document']),
         get_roots(entry['question2_document'])
     )
+    return entry
 
 
 def parse_heads_sets_similarity(entry):
@@ -52,6 +63,7 @@ def parse_heads_sets_similarity(entry):
         get_heads(entry['question1_document']),
         get_heads(entry['question2_document'])
     )
+    return entry
 
 
 def object_sets_similarity(entry):
@@ -59,6 +71,7 @@ def object_sets_similarity(entry):
         get_objects(entry['question1_document']),
         get_objects(entry['question2_document'])
     )
+    return entry
 
 
 def first_interrogative_matching(entry):
@@ -72,6 +85,7 @@ def first_interrogative_matching(entry):
         match = True
 
     entry['interrogative_match_feature'] = float(match)
+    return entry
 
 
 def non_alphanumeric_sets_similarity(entry):
@@ -79,6 +93,7 @@ def non_alphanumeric_sets_similarity(entry):
         set(get_non_alphanumeric_characters(entry['question1'])),
         set(get_non_alphanumeric_characters(entry['question2']))
     )
+    return entry
 
 
 def unigram_idf_cutoff_similarity(entry):
@@ -94,11 +109,42 @@ def unigram_idf_cutoff_similarity(entry):
         filter_words_with_minimum_idf(entry['question1_document'], 15),
         filter_words_with_minimum_idf(entry['question2_document'], 15)
     )
+    return entry
 
 
 def unigram_idf_mean_difference(entry):
-    entry['unigram_idf_mean_difference_feature'] = abs(
-        geometric_mean_of_unigram_idfs(entry['question1_document']) -
-        geometric_mean_of_unigram_idfs(entry['question2_document'])
+    entry['unigram_idf_mean_difference_feature'] = logistic_sigmoid(
+        abs(
+            geometric_mean_of_unigram_idfs(entry['question1_document']) -
+            geometric_mean_of_unigram_idfs(entry['question2_document'])
+        )
     )
+    return entry
 
+
+def subject_verb_inversion_similarity(entry):
+    entry['subject_verb_inversion_similarity_feature'] = float(
+        is_subject_verb_inversion(entry['question1_document']) ==
+        is_subject_verb_inversion(entry['question2_document'])
+    )
+    return entry
+
+
+def number_of_children_similarity(entry):
+    entry['number_of_children_similarity_5_feature'] = relative_levenshtein_distance(
+        number_of_children(entry['question1_document'])[:5],
+        number_of_children(entry['question2_document'])[:5]
+    )
+    return entry
+
+
+def document_pos_cutoff_similarity(entry):
+    entry['document_pos_similarity_3_feature'] = relative_levenshtein_distance(
+        document_pos(entry['question1_document'])[:3],
+        document_pos(entry['question2_document'])[:3]
+    )
+    entry['document_pos_similarity_10_feature'] = relative_levenshtein_distance(
+        document_pos(entry['question1_document'])[:10],
+        document_pos(entry['question2_document'])[:10]
+    )
+    return entry
