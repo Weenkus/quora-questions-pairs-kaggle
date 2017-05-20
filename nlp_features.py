@@ -53,18 +53,6 @@ def create_features(input_file_path):
     for entry in apply_pipeline(read_dataset(input_file_path), nlp_pipeline):
         yield {k: v for k, v in entry.items() if k.endswith('feature') or k == 'id'}
 
-# print(datetime.datetime.now())
-# with open('output/train_features.json', 'w') as output_file:
-#     for entry in apply_pipeline(read_dataset('input/train.csv'), nlp_pipeline):
-#         filtered_entry = {k: v for k, v in entry.items() if k.endswith('feature') or k == 'id'}
-#         output_file.write('%s\n' % json.dumps(filtered_entry))
-#
-# print(datetime.datetime.now())
-# with open('output/test_features.json', 'w') as output_file:
-#     for entry in apply_pipeline(read_dataset('input/test.csv'), nlp_pipeline):
-#         filtered_entry = {k: v for k, v in entry.items() if k.endswith('feature') or k == 'id'}
-#         output_file.write('%s\n' % json.dumps(filtered_entry))
-
 print(datetime.datetime.now())
 DataFrame(create_features('input/train.csv')).to_csv('output/train_features.csv', index=False)
 

@@ -90,5 +90,6 @@ ENV/
 
 # Datasets
 input/
+output/
 
 .idea
