@@ -1,7 +1,8 @@
 from scipy.special import expit as logistic_sigmoid
-from quora_questions.features.helper import jaccard_index, nlp, get_heads, get_objects, get_roots, get_subjects, interrogative_words, \
+from quora_questions.features.helper import jaccard_index, nlp, get_heads, get_objects, get_roots, get_subjects, \
     get_non_alphanumeric_characters, filter_words_with_minimum_idf, geometric_mean_of_unigram_idfs, \
-    is_subject_verb_inversion, naive_normalization, number_of_children, document_pos, relative_levenshtein_distance
+    is_subject_verb_inversion, naive_normalization, number_of_children, document_pos, relative_levenshtein_distance, \
+    compare_compressed_size, get_all_lemmas, get_cosine_similarity, simple_document_filter, interrogative_words
 
 
 def assert_valid_input(entry):
@@ -38,6 +39,22 @@ def numbers_sets_similarity(entry):
     entry['numbers_similarity_feature'] = jaccard_index(
         set([word.lemma for word in entry['question1_document'] if word.like_num]),
         set([word.lemma for word in entry['question2_document'] if word.like_num])
+    )
+    return entry
+
+
+def url_sets_similarity(entry):
+    entry['url_similarity_feature'] = jaccard_index(
+        set([word.lemma for word in entry['question1_document'] if word.like_url]),
+        set([word.lemma for word in entry['question2_document'] if word.like_url])
+    )
+    return entry
+
+
+def email_sets_similarity(entry):
+    entry['email_similarity_feature'] = jaccard_index(
+        set([word.lemma for word in entry['question1_document'] if word.like_email]),
+        set([word.lemma for word in entry['question2_document'] if word.like_email])
     )
     return entry
 
@@ -97,13 +114,25 @@ def non_alphanumeric_sets_similarity(entry):
 
 
 def unigram_idf_cutoff_similarity(entry):
+    entry['unigram_idf_cutoff_similarity_1_feature'] = jaccard_index(
+        filter_words_with_minimum_idf(entry['question1_document'], 1),
+        filter_words_with_minimum_idf(entry['question2_document'], 1)
+    )
     entry['unigram_idf_cutoff_similarity_5_feature'] = jaccard_index(
         filter_words_with_minimum_idf(entry['question1_document'], 5),
         filter_words_with_minimum_idf(entry['question2_document'], 5)
     )
+    entry['unigram_idf_cutoff_similarity_7.5_feature'] = jaccard_index(
+        filter_words_with_minimum_idf(entry['question1_document'], 7.5),
+        filter_words_with_minimum_idf(entry['question2_document'], 7.5)
+    )
     entry['unigram_idf_cutoff_similarity_10_feature'] = jaccard_index(
         filter_words_with_minimum_idf(entry['question1_document'], 10),
         filter_words_with_minimum_idf(entry['question2_document'], 10)
+    )
+    entry['unigram_idf_cutoff_similarity_12.5_feature'] = jaccard_index(
+        filter_words_with_minimum_idf(entry['question1_document'], 12.5),
+        filter_words_with_minimum_idf(entry['question2_document'], 12.5)
     )
     entry['unigram_idf_cutoff_similarity_15_feature'] = jaccard_index(
         filter_words_with_minimum_idf(entry['question1_document'], 15),
@@ -143,8 +172,70 @@ def document_pos_cutoff_similarity(entry):
         document_pos(entry['question1_document'])[:3],
         document_pos(entry['question2_document'])[:3]
     )
+    entry['document_pos_similarity_5_feature'] = relative_levenshtein_distance(
+        document_pos(entry['question1_document'])[:5],
+        document_pos(entry['question2_document'])[:5]
+    )
+    entry['document_pos_similarity_7_feature'] = relative_levenshtein_distance(
+        document_pos(entry['question1_document'])[:7],
+        document_pos(entry['question2_document'])[:7]
+    )
     entry['document_pos_similarity_10_feature'] = relative_levenshtein_distance(
         document_pos(entry['question1_document'])[:10],
         document_pos(entry['question2_document'])[:10]
+    )
+    entry['document_pos_similarity_all_feature'] = relative_levenshtein_distance(
+        document_pos(entry['question1_document']),
+        document_pos(entry['question2_document'])
+    )
+    return entry
+
+
+def compression_size_reduction_ratio(entry):
+    entry['compression_ratio_feature'] = naive_normalization(
+        compare_compressed_size(
+            entry['question1'],
+            entry['question2']
+        )
+    )
+    return entry
+
+
+def lemma_edit_distance(entry):
+    entry['lemma_edit_distance_feature'] = relative_levenshtein_distance(
+        get_all_lemmas(entry['question1_document']),
+        get_all_lemmas(entry['question2_document'])
+    )
+    return entry
+
+
+def first_word_similarity(entry):
+    entry['first_word_similarity_feature'] = \
+        naive_normalization(entry['question1_document'][0].similarity(entry['question2_document'][0]))
+    return entry
+
+
+def last_word_similarity(entry):
+    entry['last_word_similarity_feature'] = \
+        naive_normalization(entry['question1_document'][-1].similarity(entry['question2_document'][-1]))
+    return entry
+
+
+def filtered_cosine_similarity(entry):
+    entry['filtered_cosine_similarity_feature'] = naive_normalization(
+        get_cosine_similarity(
+            simple_document_filter(
+                document=entry['question1_document'],
+                use_out_of_vocabulary=False,
+                use_stopwords=False,
+                use_punctuation=False
+            ),
+            simple_document_filter(
+                document=entry['question2_document'],
+                use_out_of_vocabulary=False,
+                use_stopwords=False,
+                use_punctuation=False
+            )
+        )
     )
     return entry

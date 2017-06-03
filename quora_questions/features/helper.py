@@ -3,6 +3,9 @@ import pickle
 import spacy
 from spacy.symbols import nsubj, dobj, VERB
 from scipy.stats.mstats import gmean
+from scipy import spatial
+import zlib
+import sys
 
 nlp = spacy.load('en_default')
 
@@ -82,7 +85,10 @@ def _levenshtein_distance(s1, s2):
 
 def relative_levenshtein_distance(s1, s2):
     maximum_length = max(len(s1), len(s2))
-    return _levenshtein_distance(s1, s2) / maximum_length
+    try:
+        return _levenshtein_distance(s1, s2) / maximum_length
+    except ZeroDivisionError:
+        return 1.0
 
 
 def is_subject_verb_inversion(doc):
@@ -110,3 +116,49 @@ def number_of_children(document):
 
 def document_pos(document):
     return [word.pos_ for word in document]
+
+
+def _get_compressed_size(text):
+    return sys.getsizeof(zlib.compress(text, level=9))
+
+
+def compare_compressed_size(text1, text2):
+    size_sum = _get_compressed_size(text1) + _get_compressed_size(text2)
+    size_joined = _get_compressed_size(text1 + text2)
+    try:
+        return size_joined / size_sum
+    except ZeroDivisionError:
+        return 1.0
+
+
+def get_all_lemmas(document):
+    return [word.lemma_ for word in document]
+
+
+def simple_document_filter(document, use_out_of_vocabulary=False, use_stopwords=False, use_punctuation=False):
+    return [
+        word for word in document
+        if (use_out_of_vocabulary or not word.is_oov)
+        and (use_stopwords or not word.lemma_ in spacy.en.language_data.STOP_WORDS)
+        and (use_punctuation or not word.is_punct)
+        ]
+
+
+def _get_average_word_vector(words):
+    return sum([word.vector for word in words if word.has_vector]) / len([word for word in words if word.has_vector])
+
+
+def get_cosine_similarity(words1, words2):
+    try:
+        return 1 - spatial.distance.cosine(_get_average_word_vector(words1), _get_average_word_vector(words2))
+    except ZeroDivisionError:
+        return 0.0
+
+
+def relative_size_similarity(document1, document2):
+    max_length = max(len(document1), len(document2))
+    min_length = min(len(document1), len(document2))
+    try:
+        return min_length / max_length
+    except ZeroDivisionError:
+        return 0.0
