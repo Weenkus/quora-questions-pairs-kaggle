@@ -119,7 +119,7 @@ def document_pos(document):
 
 
 def _get_compressed_size(text):
-    return sys.getsizeof(zlib.compress(text, level=9))
+    return sys.getsizeof(zlib.compress(bytes(text, 'utf-8'), 9))
 
 
 def compare_compressed_size(text1, text2):
