@@ -2,7 +2,8 @@ from scipy.special import expit as logistic_sigmoid
 from quora_questions.features.helper import jaccard_index, nlp, get_heads, get_objects, get_roots, get_subjects, \
     get_non_alphanumeric_characters, filter_words_with_minimum_idf, geometric_mean_of_unigram_idfs, \
     is_subject_verb_inversion, naive_normalization, number_of_children, document_pos, relative_levenshtein_distance, \
-    compare_compressed_size, get_all_lemmas, get_cosine_similarity, simple_document_filter, interrogative_words
+    compare_compressed_size, get_all_lemmas, get_cosine_similarity, simple_document_filter, interrogative_words, \
+    relative_size_similarity
 
 
 def assert_valid_input(entry):
@@ -210,14 +211,22 @@ def lemma_edit_distance(entry):
 
 
 def first_word_similarity(entry):
-    entry['first_word_similarity_feature'] = \
-        naive_normalization(entry['question1_document'][0].similarity(entry['question2_document'][0]))
+    try:
+        entry['first_word_similarity_feature'] = naive_normalization(entry['question1_document'][0].similarity(
+            entry['question2_document'][0])
+        )
+    except IndexError:
+        entry['first_word_similarity_feature'] = 0.0
     return entry
 
 
 def last_word_similarity(entry):
-    entry['last_word_similarity_feature'] = \
-        naive_normalization(entry['question1_document'][-1].similarity(entry['question2_document'][-1]))
+    try:
+        entry['last_word_similarity_feature'] = naive_normalization(entry['question1_document'][-1].similarity(
+            entry['question2_document'][-1])
+        )
+    except IndexError:
+        entry['last_word_similarity_feature'] = 0.0
     return entry
 
 
@@ -237,5 +246,13 @@ def filtered_cosine_similarity(entry):
                 use_punctuation=False
             )
         )
+    )
+    return entry
+
+
+def question_length_similarity(entry):
+    entry['question_length_similarity_feature'] = relative_size_similarity(
+        entry['question1_document'],
+        entry['question2_document']
     )
     return entry

@@ -7,7 +7,9 @@ from quora_questions.features.nlp import assert_valid_input, spacy_process, simp
     numbers_sets_similarity, subject_sets_similarity, parse_roots_sets_similarity, parse_heads_sets_similarity, \
     object_sets_similarity, first_interrogative_matching, non_alphanumeric_sets_similarity, \
     unigram_idf_cutoff_similarity, unigram_idf_mean_difference, subject_verb_inversion_similarity, \
-    number_of_children_similarity, document_pos_cutoff_similarity
+    number_of_children_similarity, document_pos_cutoff_similarity, compression_size_reduction_ratio, \
+    email_sets_similarity, filtered_cosine_similarity, url_sets_similarity, first_word_similarity, \
+    last_word_similarity, lemma_edit_distance, question_length_similarity
 from quora_questions.pipeline.pipey import apply_pipeline, modifier
 
 
@@ -33,8 +35,11 @@ nlp_pipeline = [
     (assert_valid_input, modifier.map),
     (spacy_process, modifier.map),
     (simple_similarity, modifier.map),
+    (filtered_cosine_similarity, modifier.map),
     (entity_sets_similarity, modifier.map),
     (numbers_sets_similarity, modifier.map),
+    (email_sets_similarity, modifier.map),
+    (url_sets_similarity, modifier.map),
     (subject_sets_similarity, modifier.map),
     (parse_roots_sets_similarity, modifier.map),
     (parse_heads_sets_similarity, modifier.map),
@@ -45,7 +50,12 @@ nlp_pipeline = [
     (unigram_idf_mean_difference, modifier.map),
     (subject_verb_inversion_similarity, modifier.map),
     (number_of_children_similarity, modifier.map),
-    (document_pos_cutoff_similarity, modifier.map)
+    (document_pos_cutoff_similarity, modifier.map),
+    (compression_size_reduction_ratio, modifier.map),
+    (first_word_similarity, modifier.map),
+    (last_word_similarity, modifier.map),
+    (lemma_edit_distance, modifier.map),
+    (question_length_similarity, modifier.map)
 ]
 
 
