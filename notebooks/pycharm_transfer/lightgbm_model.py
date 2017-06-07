@@ -12,7 +12,29 @@ from sklearn import datasets, metrics, model_selection
 from pylightgbm.models import GBMRegressor
 
 
-features = [
+features = list(set([
+	'compression_ratio_feature', 'document_pos_similarity_10_feature',
+       'document_pos_similarity_3_feature',
+       'document_pos_similarity_5_feature',
+       'document_pos_similarity_7_feature',
+       'document_pos_similarity_all_feature', 'email_similarity_feature',
+       'entities_similarity_feature', 'filtered_cosine_similarity_feature',
+       'first_word_similarity_feature', 'heads_similarity_feature',
+       'interrogative_match_feature', 'last_word_similarity_feature',
+       'lemma_edit_distance_feature', 'non_alphanumeric_similarity_feature',
+       'number_of_children_similarity_5_feature', 'numbers_similarity_feature',
+       'objects_similarity_feature', 'question_length_similarity_feature',
+       'roots_similarity_feature', 'spacy_similarity_feature',
+       'subject_verb_inversion_similarity_feature',
+       'subjects_similarity_feature',
+       'unigram_idf_cutoff_similarity_10_feature',
+       'unigram_idf_cutoff_similarity_12.5_feature',
+       'unigram_idf_cutoff_similarity_15_feature',
+       'unigram_idf_cutoff_similarity_1_feature',
+       'unigram_idf_cutoff_similarity_5_feature',
+       'unigram_idf_cutoff_similarity_7.5_feature',
+       'unigram_idf_mean_difference_feature', 'url_similarity_feature',
+
     'q1_q2_wm_ratio', 'len_char_q1', 'len_char_q2', 'len_word_q1', 'len_word_q2',
     'common_words', 'fuzz_qratio', 'fuzz_WRatio', 'fuzz_partial_ratio', 'fuzz_partial_token_set_ratio',
     'fuzz_partial_token_sort_ratio', 'fuzz_token_set_ratio', 'fuzz_token_sort_ratio',
@@ -31,25 +53,13 @@ features = [
     'q1_VB_count', 'q2_VB_count', 'VB_diff', 'q1_DT_count', 'q2_DT_count',
     'DT_diff', 'q1_JJ_count', 'q2_JJ_count', 'JJ_diff', 'q1_FW_count',
     'q2_FW_count', 'FW_diff', 'q1_RP_count', 'q2_RP_count', 'RP_diff',
-    'q1_SYM_count', 'q2_SYM_count', 'SYM_diff',
-    'document_pos_similarity_10_feature',
-    'document_pos_similarity_3_feature', 'entities_similarity_feature',
-    'heads_similarity_feature', 'interrogative_match_feature',
-    'non_alphanumeric_similarity_feature',
-    'number_of_children_similarity_5_feature', 'numbers_similarity_feature',
-    'objects_similarity_feature', 'roots_similarity_feature',
-    'spacy_similarity_feature', 'subject_verb_inversion_similarity_feature',
-    'subjects_similarity_feature',
-    'unigram_idf_cutoff_similarity_10_feature',
-    'unigram_idf_cutoff_similarity_15_feature',
-    'unigram_idf_cutoff_similarity_5_feature',
-    'unigram_idf_mean_difference_feature']
+    'q1_SYM_count', 'q2_SYM_count', 'SYM_diff']))
 target = 'is_duplicate'
 
 
 def load_train():
     train_old = pd.read_pickle('../../features/train_new.pkl')
-    train_bekavac = pd.read_csv('../../features/train_features_bekavac.csv')
+    train_bekavac = pd.read_csv('../../features/train_features_bekavac_v2.csv')
     train_magic1 = pd.read_csv('../../features/train_magic_feature_v1.csv')
     train_magic2 = pd.read_csv('../../features/train_magic_feature_v2.csv')
     train_magic3 = pd.read_csv('../../features/train_magic_feature_v3.csv')
@@ -76,7 +86,7 @@ def load_train():
 
 def load_test():
     test_old = pd.read_pickle('../../features/test_new.pkl')
-    test_bekavac = pd.read_csv('../../features/test_features_bekavac.csv')
+    test_bekavac = pd.read_csv('../../features/test_features_bekavac_v2.csv')
     test_magic1 = pd.read_csv('../../features/test_magic_feature_v1.csv')
     test_magic3 = pd.read_csv('../../features/test_magic_feature_v3.csv')
     abhishek_test = pd.read_csv('../../features/abhishek_test_features.csv', encoding="ISO-8859-1")
@@ -146,25 +156,71 @@ def get_model():
     #     'reg_alpha': [0, 0.5],
     #     'min_child_samples': [10, 5],
     # }
-    #
-    #
+
+    #param_grid = {
+    #    'skip_drop': [0.0, 0.25, 0.5, 0.75, 0.9]
+    #}
+
     # model = GridSearchCV(
-    #     lgb.LGBMClassifier(),
+    #     lgb.LGBMClassifier(
+    #         learning_rate=0.1,
+    #         n_estimators=100,
+    #         nthread=8,
+    #         max_depth=12,
+    #         min_child_weight=1,
+    #         reg_alpha=1.3,
+    #         subsample=0.8,
+    #         seed=42,
+    #         skip_drop=0.0,
+    #         colsample_bytree=0.85,
+    #         drop_rate=0.0,
+    #         xgboost_dart_mode=True,
+    #         is_unbalance=False,
+    #         uniform_drop=True
+    #     ),
     #     param_grid, verbose=3, cv=3, scoring='neg_log_loss'
-    #
+    # )
+
+
+    # model = lgb.LGBMClassifier(
+    #     n_estimators=600,
+    #     colsample_bytree=0.7,
+    #     subsample=0.65,
+    #     max_depth=-1,
+    #     learning_rate=0.05,
+    #     drop_rate=0.1,
+    #     min_child_samples=10,
+    #     min_child_weight=5,
+    #     is_unbalance=False,
+    #     nthread=8
+    # )
 
     model = lgb.LGBMClassifier(
-        n_estimators=600,
-        colsample_bytree=0.7,
-        subsample=0.65,
-        max_depth=-1,
-        learning_rate=0.05,
-        drop_rate=0.1,
-        min_child_samples=10,
-        min_child_weight=5,
-        is_unbalance=False,
-        nthread=8
-    )
+            learning_rate=0.01,
+            n_estimators=630,
+            nthread=8,
+            max_depth=12,
+            min_child_weight=1,
+            reg_alpha=1.3,
+            subsample=0.8,
+            seed=42,
+            skip_drop=0.0,
+            colsample_bytree=0.85,
+            drop_rate=0.0,
+            xgboost_dart_mode=True,
+            is_unbalance=False,
+            uniform_drop=True
+        )
+
+    #model = lgb.LGBMClassifier(
+#	n_estimators=500,
+#        learning_rate=0.04,
+#        max_depth=7,
+#        subsample=0.65,
+#        #gamma=1.5,
+#        seed=42,
+#        colsample_bytree=0.3
+#)
 
     return model
 
@@ -193,7 +249,7 @@ def main():
     X_train, y_train = get_X_y(train)
 
     print('Oversampling')
-    X_train, y_train = oversample(X_train, y_train)
+    #X_train, y_train = oversample(X_train, y_train)
 
 
     print('Training')
@@ -215,17 +271,17 @@ def main():
     print('Loading test')
     test = load_test()
     X_test = test[features]
-    
+
     del test
     gc.collect()
 
     print('Generating predictions without correction')
     predictions = model.predict_proba(X_test)
-    generate_submission(predictions, 'lgb5_yO_nC')
+    generate_submission(predictions, 'lgb10_nO_nC')
 
     print('Generating predictions with correction')
     predictions = prediction_correction(predictions)
-    generate_submission(predictions, 'lgb5_yO_yC')
+    generate_submission(predictions, 'lgb10_nO_yC')
 
 if __name__ == '__main__':
     main()
