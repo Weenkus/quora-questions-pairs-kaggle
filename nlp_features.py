@@ -1,7 +1,5 @@
 import csv
-import json
 import datetime
-from pandas import DataFrame
 
 from quora_questions.features.nlp import assert_valid_input, spacy_process, simple_similarity, entity_sets_similarity, \
     numbers_sets_similarity, subject_sets_similarity, parse_roots_sets_similarity, parse_heads_sets_similarity, \
@@ -63,10 +61,28 @@ def create_features(input_file_path):
     for entry in apply_pipeline(read_dataset(input_file_path), nlp_pipeline):
         yield {k: v for k, v in entry.items() if k.endswith('feature') or k == 'id'}
 
-print(datetime.datetime.now())
-DataFrame(create_features('input/train.csv')).to_csv('output/train_features.csv', index=False)
+
+def write_results_to_csv(results, output_file_path):
+    try:
+        first_row = next(results)
+    except StopIteration:
+        return
+
+    with open(output_file_path) as output_file:
+        field_names = list(first_row.keys())
+        csv_writer = csv.DictWriter(output_file, fieldnames=field_names)
+        csv_writer.writeheader()
+        field_names_set = set(field_names)
+
+        for row in results:
+            assert set(row.keys()) == field_names_set
+            csv_writer.writerow(row)
+
 
 print(datetime.datetime.now())
-DataFrame(create_features('input/test.csv')).to_csv('output/test_features.csv', index=False)
+write_results_to_csv(create_features('input/train.csv'), 'output/train_features.csv')
+
+print(datetime.datetime.now())
+write_results_to_csv(create_features('input/test.csv'), 'output/test_features.csv')
 
 print(datetime.datetime.now())
