@@ -1,4 +1,4 @@
-### Forked from https://github.com/Weenkus/Quora-Questions-Pairs-Kaggle
+### Forked from https://github.com/Weenkus/Quora-Questions-Pairs-Kaggle before it was made public.
 
 # Quora-Questions-Pairs-Kaggle
 Kaggle competition: https://www.kaggle.com/c/quora-question-pairs
